@@ -424,10 +424,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#cfs-sched_other-sched_batch" class="md-nav__link">
+  <a href="#cfs-sched_other-sched_batch-sched_idle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CFS (SCHED_OTHER, SCHED_BATCH)
+        CFS (SCHED_OTHER, SCHED_BATCH, SCHED_IDLE)
       
     </span>
   </a>
@@ -672,10 +672,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#cfs-sched_other-sched_batch" class="md-nav__link">
+  <a href="#cfs-sched_other-sched_batch-sched_idle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CFS (SCHED_OTHER, SCHED_BATCH)
+        CFS (SCHED_OTHER, SCHED_BATCH, SCHED_IDLE)
       
     </span>
   </a>
@@ -873,6 +873,11 @@ with <code>sched_setaffinity(2)</code>. Leaving the array empty (or <code>~</cod
 <td>nice value, <code>-20</code> (highest) … <code>19</code> (lowest)</td>
 </tr>
 <tr>
+<td><code>SCHED_IDLE</code></td>
+<td>CFS (idle)</td>
+<td>nice value (accepted, but has little practical effect)</td>
+</tr>
+<tr>
 <td><code>SCHED_FIFO</code></td>
 <td>FIFO</td>
 <td><code>99</code> (highest) … <code>1</code> (lowest)</td>
@@ -890,7 +895,7 @@ with <code>sched_setaffinity(2)</code>. Leaving the array empty (or <code>~</cod
 </tbody>
 </table>
 <p>The configurable items differ depending on which scheduler the thread runs on.</p>
-<h4 id="cfs-sched_other-sched_batch">CFS (<code>SCHED_OTHER</code>, <code>SCHED_BATCH</code>)<a class="headerlink" href="#cfs-sched_other-sched_batch" title="Permanent link">#</a></h4>
+<h4 id="cfs-sched_other-sched_batch-sched_idle">CFS (<code>SCHED_OTHER</code>, <code>SCHED_BATCH</code>, <code>SCHED_IDLE</code>)<a class="headerlink" href="#cfs-sched_other-sched_batch-sched_idle" title="Permanent link">#</a></h4>
 <p>For threads on the CFS, <code>priority</code> is the nice value, ranging from <code>-20</code> (highest priority) to <code>19</code>
 (lowest priority):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xxxxx</span>
@@ -900,6 +905,8 @@ with <code>sched_setaffinity(2)</code>. Leaving the array empty (or <code>~</cod
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SCHED_OTHER</span>
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">priority</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-10</span>
 </code></pre></div>
+<p><code>SCHED_IDLE</code> is the lowest-priority background class — its threads run only when no other thread on the
+CPU is runnable. A <code>priority</code> (nice) value is still required, but it has little practical effect.</p>
 <h4 id="fifo-scheduler-sched_fifo-sched_rr">FIFO scheduler (<code>SCHED_FIFO</code>, <code>SCHED_RR</code>)<a class="headerlink" href="#fifo-scheduler-sched_fifo-sched_rr" title="Permanent link">#</a></h4>
 <p>For threads on the FIFO scheduler, <code>priority</code> ranges from <code>99</code> (highest) to <code>1</code> (lowest). This range
 corresponds to the return values of <code>sched_get_priority_max(2)</code> and <code>sched_get_priority_min(2)</code>, which
