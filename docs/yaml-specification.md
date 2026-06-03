@@ -54,13 +54,14 @@ affinity:
 |--------|-----------|--------------------|
 | `SCHED_OTHER` | CFS | nice value, `-20` (highest) … `19` (lowest) |
 | `SCHED_BATCH` | CFS | nice value, `-20` (highest) … `19` (lowest) |
+| `SCHED_IDLE` | CFS (idle) | nice value (accepted, but has little practical effect) |
 | `SCHED_FIFO` | FIFO | `99` (highest) … `1` (lowest) |
 | `SCHED_RR` | round-robin | `99` (highest) … `1` (lowest) |
 | `SCHED_DEADLINE` | EDF | not used — set `runtime` / `deadline` / `period` instead |
 
 The configurable items differ depending on which scheduler the thread runs on.
 
-#### CFS (`SCHED_OTHER`, `SCHED_BATCH`)
+#### CFS (`SCHED_OTHER`, `SCHED_BATCH`, `SCHED_IDLE`)
 
 For threads on the CFS, `priority` is the nice value, ranging from `-20` (highest priority) to `19`
 (lowest priority):
@@ -73,6 +74,9 @@ For threads on the CFS, `priority` is the nice value, ranging from `-20` (highes
     policy: SCHED_OTHER
     priority: -10
 ```
+
+`SCHED_IDLE` is the lowest-priority background class — its threads run only when no other thread on the
+CPU is runnable. A `priority` (nice) value is still required, but it has little practical effect.
 
 #### FIFO scheduler (`SCHED_FIFO`, `SCHED_RR`)
 
