@@ -120,19 +120,18 @@ automatically. An ID consists of multiple strings separated by `@`:
 ```
 
 The first element is the ROS 2 node name including its namespace. Each subsequent element identifies a
-callback contained in the CallbackGroup. There are five callback types:
+callback contained in the CallbackGroup. There are four callback types:
 
 - `Subscription(<topic name>)`
 - `Service(<service name>)`
 - `Client(<service name>)`
 - `Timer(<period in nanoseconds>)`
-- `Waitable`
 
 For example:
 
 ```yaml
 callback_groups:
-  - id: /sample_node@Subscription(/topic_in)@Waitable
+  - id: /sample_node@Subscription(/topic_in)
     affinity: ~
     policy: SCHED_OTHER
     priority: 0
@@ -145,11 +144,11 @@ callback_groups:
 
 !!! warning
     Timers with the same period cannot be distinguished from one another. If differentiation is needed,
-    slightly adjust one period (for example by `1ns`). Likewise, no distinction is made between
-    `rclcpp::Waitable` instances.
+    slightly adjust one period (for example by `1ns`).
 
 !!! note
-    A future update may exclude `rclcpp::Waitable` from the CallbackGroup ID.
+    `rclcpp::Waitable` callbacks are not included in the CallbackGroup ID. For backward compatibility, a
+    trailing `@Waitable` in an existing configuration is ignored when the file is loaded.
 
 ## non_ros_threads
 

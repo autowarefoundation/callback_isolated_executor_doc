@@ -23,8 +23,8 @@ source install/setup.bash
 
 ## Step 2: Switch the Executor
 
-When a node runs inside `ComponentContainerCallbackIsolated`, you do **not** need to modify the node's
-implementation — only the launch file (Option 2 below). If you start a node directly from a `main`
+When a node runs inside the `component_container_callback_isolated` container, you do **not** need to
+modify the node's implementation — only the launch file (Option 2 below). If you start a node directly from a `main`
 function without a component container, change the executor in code (Option 1) and rebuild.
 
 Refer to the [`cie_sample_application`](https://github.com/autowarefoundation/callback_isolated_executor/tree/main/cie_sample_application)
@@ -53,7 +53,7 @@ ament_target_dependencies(your_executable ... callback_isolated_executor)
 Then replace your executor in the `main` function:
 
 ```cpp
-#include "callback_isolated_executor.hpp"
+#include "callback_isolated_executor/callback_isolated_executor.hpp"
 
 int main(int argc, char * argv[]) {
   rclcpp::init(argc, argv);

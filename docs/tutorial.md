@@ -74,7 +74,7 @@ callback_groups:
     policy: SCHED_OTHER
     priority: 0
 
-  - id: /sample_space/sample_subspace/sample_node@Subscription(/sample_space/sample_subspace/topic_in)@Waitable
+  - id: /sample_space/sample_subspace/sample_node@Subscription(/sample_space/sample_subspace/topic_in)
     affinity: ~
     policy: SCHED_OTHER
     priority: 0
