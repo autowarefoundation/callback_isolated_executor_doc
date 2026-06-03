@@ -29,5 +29,4 @@ every pull request.
 
 Pushing to `main` triggers [`.github/workflows/deploy-docs.yaml`](.github/workflows/deploy-docs.yaml),
 which publishes the site to the `gh-pages` branch via [mike](https://github.com/jimporter/mike) under
-the `latest` alias. Enable GitHub Pages (Settings → Pages → source: `gh-pages`) once, after the first
-deploy.
+the `latest` alias.
