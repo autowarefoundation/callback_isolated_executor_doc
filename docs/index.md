@@ -30,6 +30,8 @@ delegated to the Linux kernel: you assign `SCHED_FIFO`, `SCHED_RR`, `SCHED_DEADL
 For the design rationale and evaluation, see the RTAS 2025 paper
 [*Middleware-Transparent Callback Enforcement in Commoditized Component-Oriented Real-Time Systems*](https://arxiv.org/pdf/2505.06546).
 
+This package continues the development of [`sykwer/callback_isolated_executor`](https://github.com/sykwer/callback_isolated_executor), the original implementation accompanying that paper.
+
 ## Supported Environments
 
 | Category | Supported Versions / Notes |
