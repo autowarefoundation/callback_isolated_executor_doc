@@ -1,0 +1,31 @@
+# markdownlint configuration
+# Rule reference: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+default: true
+
+# Long prose lines are intentional in the docs.
+MD013: false
+
+# The docs use inline HTML and MkDocs Material extensions.
+MD033: false
+
+# Some pages start with YAML frontmatter instead of an H1.
+MD041: false
+
+# Bare URLs appear in link lists.
+MD034: false
+
+# The comparison page is kept verbatim in sync with the source repo, which uses
+# bold lead-ins (e.g. **Immediate Enqueue**) to define each criterion.
+MD036: false
+
+# Allow duplicate headings as long as they are not siblings
+# (e.g. "Before" / "After" subsections repeated under different parents).
+MD024:
+  siblings_only: true
+
+# MkDocs Material admonitions require 4-space indented content, which
+# markdownlint misparses as indented code blocks when the content contains
+# a list after a blank line. Disable the fenced-vs-indented check so this
+# pattern works. Fenced code blocks remain the de-facto style everywhere.
+MD046: false

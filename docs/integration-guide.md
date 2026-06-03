@@ -1,0 +1,242 @@
+# Integration Guide
+
+## Overview
+
+1. **Build and install** the `callback_isolated_executor` packages
+2. **Switch the executor** in your application code or launch file
+3. **Set up the thread configurator** (one-time system configuration)
+4. **Generate a YAML template** by running the configurator in prerun mode
+5. **Edit the YAML** to assign scheduling policies, priorities, and CPU affinities
+6. **Launch the configurator** with your config file, then start your application
+
+See the [Tutorial](tutorial.md) for a concrete walkthrough with the sample application.
+
+## Step 1: Build and Install
+
+```bash
+git clone https://github.com/autowarefoundation/callback_isolated_executor.git
+cd callback_isolated_executor
+source /opt/ros/humble/setup.bash
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+source install/setup.bash
+```
+
+## Step 2: Switch the Executor
+
+When a node runs inside `ComponentContainerCallbackIsolated`, you do **not** need to modify the node's
+implementation — only the launch file (Option 2 below). If you start a node directly from a `main`
+function without a component container, change the executor in code (Option 1) and rebuild.
+
+Refer to the [`cie_sample_application`](https://github.com/autowarefoundation/callback_isolated_executor/tree/main/cie_sample_application)
+package for a complete working example.
+
+### Option 1: Launch without a ComponentContainer
+
+Declare the dependency in `package.xml`:
+
+```xml
+<package format="3">
+  ...
+  <depend>callback_isolated_executor</depend>
+  ...
+</package>
+```
+
+Link against it in `CMakeLists.txt`:
+
+```cmake
+find_package(callback_isolated_executor REQUIRED)
+...
+ament_target_dependencies(your_executable ... callback_isolated_executor)
+```
+
+Then replace your executor in the `main` function:
+
+```cpp
+#include "callback_isolated_executor.hpp"
+
+int main(int argc, char * argv[]) {
+  rclcpp::init(argc, argv);
+
+  auto node = std::make_shared<SampleNode>();
+  auto executor = std::make_shared<CallbackIsolatedExecutor>();
+
+  executor->add_node(node);
+  executor->spin();
+
+  rclcpp::shutdown();
+  return 0;
+}
+```
+
+### Option 2: Launch with a ComponentContainer
+
+Use `component_container_callback_isolated` from the `callback_isolated_executor` package as the
+container executable:
+
+```xml
+<launch>
+  <node_container pkg="callback_isolated_executor" exec="component_container_callback_isolated"
+                  name="sample_container" namespace="">
+    <composable_node pkg="cie_sample_application" plugin="SampleNode" name="sample_node" namespace="">
+      ...
+    </composable_node>
+  </node_container>
+</launch>
+```
+
+Alternatively, load a node into an existing container:
+
+```xml
+<launch>
+  <load_composable_node target="sample_container">
+    <composable_node pkg="cie_sample_application" plugin="SampleNode" name="sample_node" namespace="">
+    </composable_node>
+  </load_composable_node>
+</launch>
+```
+
+If you modify application source code (Option 1), rebuild before continuing.
+
+## Step 3: Set Up the Thread Configurator
+
+The `cie_thread_configurator` applies the scheduling parameters from your YAML file to each
+CallbackGroup's thread. It needs the `CAP_SYS_NICE` capability to issue syscalls such as
+`sched_setscheduler(2)`.
+
+### Grant capabilities
+
+```bash
+sudo setcap cap_sys_nice+ep ./build/cie_thread_configurator/thread_configurator_node
+```
+
+### Configure library paths
+
+After `setcap`, the dynamic linker ignores `LD_PRELOAD` and `LD_LIBRARY_PATH` for security reasons.
+Register the required library directories explicitly by creating a file under `/etc/ld.so.conf.d/` whose
+name ends in `.conf` — for example `/etc/ld.so.conf.d/callback-isolated-executor.conf`:
+
+```text
+/opt/ros/humble/lib
+/opt/ros/humble/lib/x86_64-linux-gnu
+/path/to/callback_isolated_executor/install/cie_config_msgs/lib
+```
+
+Apply the change:
+
+```bash
+sudo ldconfig
+```
+
+??? note "Why is ldconfig needed?"
+
+    When specific permissions are granted to an ELF binary using `setcap`, environment variables like
+    `LD_PRELOAD` and `LD_LIBRARY_PATH` are ignored for security reasons. Setting `RUNPATH` on the binary
+    comes to mind as an alternative, but `RUNPATH` does not handle recursive dynamic linking well. In
+    such cases, modifying `/etc/ld.so.conf.d/` is the only option.
+
+### Kernel boot parameter (SCHED_DEADLINE only)
+
+According to the [Linux kernel documentation](https://www.kernel.org/doc/Documentation/scheduler/sched-deadline.txt),
+setting CPU affinity for `SCHED_DEADLINE` tasks requires cgroup v1. To enable cgroup v1, disable cgroup
+v2 by adding `systemd.unified_cgroup_hierarchy=0` to the kernel boot parameters. Edit
+`/etc/default/grub`:
+
+```text
+GRUB_CMDLINE_LINUX_DEFAULT="... systemd.unified_cgroup_hierarchy=0 ..."
+```
+
+Apply and reboot:
+
+```bash
+sudo update-grub
+sudo reboot
+```
+
+## Step 4: Generate a YAML Template
+
+Open two terminals. In the first, start the `prerun` node **before** launching your application; in the
+second, launch your application.
+
+```bash
+# Terminal 1: start the prerun node first
+ros2 run cie_thread_configurator prerun_node
+# or: ros2 launch cie_thread_configurator thread_configurator.launch.xml prerun:=true
+
+# Terminal 2: then launch your application
+ros2 launch your_package your_launch.xml
+```
+
+As the application starts, the prerun node logs one entry per CallbackGroup, each showing the
+CallbackGroup ID and its OS thread ID. Once all nodes are up and the log output settles, press
+`Ctrl+C` in the prerun terminal. A `template.yaml` is created in the current directory, then stop the
+target application.
+
+The template captures hardware information from the system (CPU details via `lscpu`) under
+`hardware_info`. This is used to validate compatibility when the configuration is later loaded. See the
+[YAML Specification](yaml-specification.md) for the full format.
+
+## Step 5: Edit the YAML
+
+Rename and edit the template to configure each CallbackGroup:
+
+```bash
+mv template.yaml your_config.yaml
+```
+
+For CallbackGroups that do not require configuration, either delete the entry or leave it unchanged —
+the defaults in `template.yaml` use the standard CFS scheduler with the default nice value and no
+affinity. See the [YAML Specification](yaml-specification.md) for every available option.
+
+## Step 6: Launch with the Scheduler Configuration
+
+Start the configurator node with your config file **before** launching the target application:
+
+```bash
+ros2 run cie_thread_configurator thread_configurator_node --ros-args -p config_file:=your_config.yaml
+# or: ros2 launch cie_thread_configurator thread_configurator.launch.xml config_file:=your_config.yaml
+```
+
+On startup the configurator validates the hardware: it compares `hardware_info` in the config file
+against the current system and reports an error on mismatch, for example:
+
+```text
+[ERROR] Hardware validation failed with the following mismatches:
+  - CPU family: expected '5', got '6'
+```
+
+After successful validation, the configurator prints the settings and waits for the application. When
+you launch the application, the configurator receives each CallbackGroup's information and applies the
+configured policy immediately upon receipt — including `SCHED_DEADLINE` (which uses
+`SCHED_FLAG_RESET_ON_FORK` so that forked children reset to `SCHED_OTHER`).
+
+The configurator keeps running after all configurations are applied. This lets it automatically
+re-apply settings when the target application restarts (the OS may reuse thread IDs, so thread-ID
+equality cannot be used to skip reconfiguration). If your configuration includes `SCHED_DEADLINE`
+threads with CPU affinity (configured via cgroup), the cgroup directories are cleaned up when the
+configurator node is terminated.
+
+!!! note "SCHED_DEADLINE requires root"
+    A thread cannot be set to `SCHED_DEADLINE` with capabilities alone, so if any CallbackGroup uses
+    `SCHED_DEADLINE`, the configurator must run as **root**. If the target application runs under a
+    specific `ROS_DOMAIN_ID`, the configurator must use the same domain ID:
+
+```bash
+sudo bash -c "export ROS_DOMAIN_ID=[app domain id]; \
+  source /path/to/callback_isolated_executor/install/setup.bash; \
+  ros2 run cie_thread_configurator thread_configurator_node --ros-args -p config_file:=your_config.yaml"
+```
+
+## Notes on Adoption
+
+!!! warning "Concurrency"
+    Replacing `rclcpp::executors::SingleThreadedExecutor` with `CallbackIsolatedExecutor` creates a
+    dedicated thread per CallbackGroup, enabling parallel execution. This can expose concurrency bugs
+    that were previously hidden by serial execution. Before adopting, review whether any shared state
+    requires a mutex or other synchronization. Callbacks within the same `MutuallyExclusiveCallbackGroup`
+    are still executed serially.
+
+!!! warning "Real-time policies"
+    When using real-time policies such as `SCHED_FIFO` or `SCHED_DEADLINE`, carefully consider the
+    potential to delay kernel processing and other applications. Configure affinity, priority, and
+    [throttling](https://man7.org/linux/man-pages/man7/sched.7.html) appropriately.
