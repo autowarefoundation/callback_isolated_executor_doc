@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -819,9 +819,14 @@ CallbackGroup IDs are generated automatically by the tool in prerun mode.</p>
 <td>Scheduling policy</td>
 </tr>
 <tr>
+<td><code>nice</code></td>
+<td>CFS policies only</td>
+<td>Nice value, <code>-20</code> … <code>19</code></td>
+</tr>
+<tr>
 <td><code>priority</code></td>
-<td>Yes (except <code>SCHED_DEADLINE</code>)</td>
-<td>Real-time priority or nice value, depending on policy</td>
+<td><code>SCHED_FIFO</code> / <code>SCHED_RR</code> only</td>
+<td>Real-time priority, <code>1</code> … <code>99</code></td>
 </tr>
 <tr>
 <td><code>affinity</code></td>
@@ -845,6 +850,11 @@ CallbackGroup IDs are generated automatically by the tool in prerun mode.</p>
 </tr>
 </tbody>
 </table>
+<p>Which scheduling-parameter key is required depends on the policy: CFS policies (<code>SCHED_OTHER</code>,
+<code>SCHED_BATCH</code>, <code>SCHED_IDLE</code>) take <code>nice</code>, real-time policies (<code>SCHED_FIFO</code>, <code>SCHED_RR</code>) take
+<code>priority</code>, and <code>SCHED_DEADLINE</code> takes <code>runtime</code> / <code>deadline</code> / <code>period</code>. A missing required key is
+rejected at startup with an error naming the key; a stray key of another policy class is ignored like
+any other unknown key.</p>
 <h3 id="affinity">affinity<a class="headerlink" href="#affinity" title="Permanent link">#</a></h3>
 <p><code>affinity</code> is an array of core numbers allowed to run the thread, corresponding to the CPU set used
 with <code>sched_setaffinity(2)</code>. Leaving the array empty (or <code>~</code>) allows the thread to run on all cores.</p>
@@ -858,34 +868,34 @@ with <code>sched_setaffinity(2)</code>. Leaving the array empty (or <code>~</cod
 <tr>
 <th>Policy</th>
 <th>Scheduler</th>
-<th><code>priority</code> meaning</th>
+<th>Scheduling parameter</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>SCHED_OTHER</code></td>
 <td>CFS</td>
-<td>nice value, <code>-20</code> (highest) … <code>19</code> (lowest)</td>
+<td><code>nice</code>, <code>-20</code> (highest) … <code>19</code> (lowest)</td>
 </tr>
 <tr>
 <td><code>SCHED_BATCH</code></td>
 <td>CFS</td>
-<td>nice value, <code>-20</code> (highest) … <code>19</code> (lowest)</td>
+<td><code>nice</code>, <code>-20</code> (highest) … <code>19</code> (lowest)</td>
 </tr>
 <tr>
 <td><code>SCHED_IDLE</code></td>
 <td>CFS (idle)</td>
-<td>nice value (accepted, but has little practical effect)</td>
+<td><code>nice</code> (required, but has little practical effect)</td>
 </tr>
 <tr>
 <td><code>SCHED_FIFO</code></td>
 <td>FIFO</td>
-<td><code>99</code> (highest) … <code>1</code> (lowest)</td>
+<td><code>priority</code>, <code>99</code> (highest) … <code>1</code> (lowest)</td>
 </tr>
 <tr>
 <td><code>SCHED_RR</code></td>
 <td>round-robin</td>
-<td><code>99</code> (highest) … <code>1</code> (lowest)</td>
+<td><code>priority</code>, <code>99</code> (highest) … <code>1</code> (lowest)</td>
 </tr>
 <tr>
 <td><code>SCHED_DEADLINE</code></td>
@@ -896,21 +906,21 @@ with <code>sched_setaffinity(2)</code>. Leaving the array empty (or <code>~</cod
 </table>
 <p>The configurable items differ depending on which scheduler the thread runs on.</p>
 <h4 id="cfs-sched_other-sched_batch-sched_idle">CFS (<code>SCHED_OTHER</code>, <code>SCHED_BATCH</code>, <code>SCHED_IDLE</code>)<a class="headerlink" href="#cfs-sched_other-sched_batch-sched_idle" title="Permanent link">#</a></h4>
-<p>For threads on the CFS, <code>priority</code> is the nice value, ranging from <code>-20</code> (highest priority) to <code>19</code>
-(lowest priority):</p>
+<p>For threads on the CFS, specify the nice value under the <code>nice</code> key, ranging from <code>-20</code> (highest
+priority) to <code>19</code> (lowest priority). Values outside this range are rejected at startup:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xxxxx</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nt">affinity</span><span class="p">:</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SCHED_OTHER</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">priority</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-10</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">nice</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-10</span>
 </code></pre></div>
 <p><code>SCHED_IDLE</code> is the lowest-priority background class — its threads run only when no other thread on the
-CPU is runnable. A <code>priority</code> (nice) value is still required, but it has little practical effect.</p>
+CPU is runnable. A <code>nice</code> value is still required, but it has little practical effect.</p>
 <h4 id="fifo-scheduler-sched_fifo-sched_rr">FIFO scheduler (<code>SCHED_FIFO</code>, <code>SCHED_RR</code>)<a class="headerlink" href="#fifo-scheduler-sched_fifo-sched_rr" title="Permanent link">#</a></h4>
 <p>For threads on the FIFO scheduler, <code>priority</code> ranges from <code>99</code> (highest) to <code>1</code> (lowest). This range
 corresponds to the return values of <code>sched_get_priority_max(2)</code> and <code>sched_get_priority_min(2)</code>, which
-on Linux are <code>99</code> and <code>1</code>:</p>
+on Linux are <code>99</code> and <code>1</code>. Values outside this range are rejected at startup:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xxxxx</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="nt">affinity</span><span class="p">:</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
@@ -954,12 +964,12 @@ callback contained in the CallbackGroup. There are four callback types:</p>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/sample_node@Subscription(/topic_in)</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nt">affinity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">~</span>
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="nt">policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SCHED_OTHER</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="nt">priority</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="nt">nice</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
 <a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
 <a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/sample_node@Timer(1333000000)</span>
 <a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="nt">affinity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">~</span>
 <a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="nt">policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SCHED_OTHER</span>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="nt">priority</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="nt">nice</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
 </code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -995,9 +1005,14 @@ how to create such threads):</p>
 <td>Scheduling policy (same options as <code>callback_groups</code>)</td>
 </tr>
 <tr>
+<td><code>nice</code></td>
+<td>CFS policies only</td>
+<td>Nice value, <code>-20</code> … <code>19</code></td>
+</tr>
+<tr>
 <td><code>priority</code></td>
-<td>Yes (except <code>SCHED_DEADLINE</code>)</td>
-<td>Real-time priority or nice value</td>
+<td><code>SCHED_FIFO</code> / <code>SCHED_RR</code> only</td>
+<td>Real-time priority, <code>1</code> … <code>99</code></td>
 </tr>
 <tr>
 <td><code>affinity</code></td>
@@ -1011,7 +1026,7 @@ how to create such threads):</p>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nt">affinity</span><span class="p">:</span>
 <a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
 <a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nt">policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SCHED_OTHER</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="nt">priority</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="nt">nice</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
 </code></pre></div>
 <h2 id="hardware_info">hardware_info<a class="headerlink" href="#hardware_info" title="Permanent link">#</a></h2>
 <p>Optional section for hardware validation. When present, the configurator compares these values against
@@ -1091,7 +1106,7 @@ section automatically.</p>
 <a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a>
 <a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/logging_node@Subscription(/rosout)</span>
 <a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a><span class="w">    </span><span class="nt">policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SCHED_OTHER</span>
-<a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a><span class="w">    </span><span class="nt">priority</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a><span class="w">    </span><span class="nt">nice</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
 <a id="__codelineno-8-29" name="__codelineno-8-29" href="#__codelineno-8-29"></a>
 <a id="__codelineno-8-30" name="__codelineno-8-30" href="#__codelineno-8-30"></a><span class="nt">non_ros_threads</span><span class="p">:</span>
 <a id="__codelineno-8-31" name="__codelineno-8-31" href="#__codelineno-8-31"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_driver</span>
@@ -1202,7 +1217,7 @@ section automatically.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.footer", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
