@@ -31,11 +31,18 @@ Each entry configures one CallbackGroup's OS thread:
 |-------|----------|-------------|
 | `id` | Yes | CallbackGroup identifier (auto-generated in prerun mode) |
 | `policy` | Yes | Scheduling policy |
-| `priority` | Yes (except `SCHED_DEADLINE`) | Real-time priority or nice value, depending on policy |
+| `nice` | CFS policies only | Nice value, `-20` … `19` |
+| `priority` | `SCHED_FIFO` / `SCHED_RR` only | Real-time priority, `1` … `99` |
 | `affinity` | No | List of CPU cores the thread may run on |
 | `runtime` | `SCHED_DEADLINE` only | Maximum execution time per period (ns) |
 | `deadline` | `SCHED_DEADLINE` only | Relative deadline from the start of the period (ns) |
 | `period` | `SCHED_DEADLINE` only | Period length (ns) |
+
+Which scheduling-parameter key is required depends on the policy: CFS policies (`SCHED_OTHER`,
+`SCHED_BATCH`, `SCHED_IDLE`) take `nice`, real-time policies (`SCHED_FIFO`, `SCHED_RR`) take
+`priority`, and `SCHED_DEADLINE` takes `runtime` / `deadline` / `period`. A missing required key is
+rejected at startup with an error naming the key; a stray key of another policy class is ignored like
+any other unknown key.
 
 ### affinity
 
@@ -50,21 +57,21 @@ affinity:
 
 ### Scheduling policies
 
-| Policy | Scheduler | `priority` meaning |
-|--------|-----------|--------------------|
-| `SCHED_OTHER` | CFS | nice value, `-20` (highest) … `19` (lowest) |
-| `SCHED_BATCH` | CFS | nice value, `-20` (highest) … `19` (lowest) |
-| `SCHED_IDLE` | CFS (idle) | nice value (accepted, but has little practical effect) |
-| `SCHED_FIFO` | FIFO | `99` (highest) … `1` (lowest) |
-| `SCHED_RR` | round-robin | `99` (highest) … `1` (lowest) |
+| Policy | Scheduler | Scheduling parameter |
+|--------|-----------|----------------------|
+| `SCHED_OTHER` | CFS | `nice`, `-20` (highest) … `19` (lowest) |
+| `SCHED_BATCH` | CFS | `nice`, `-20` (highest) … `19` (lowest) |
+| `SCHED_IDLE` | CFS (idle) | `nice` (required, but has little practical effect) |
+| `SCHED_FIFO` | FIFO | `priority`, `99` (highest) … `1` (lowest) |
+| `SCHED_RR` | round-robin | `priority`, `99` (highest) … `1` (lowest) |
 | `SCHED_DEADLINE` | EDF | not used — set `runtime` / `deadline` / `period` instead |
 
 The configurable items differ depending on which scheduler the thread runs on.
 
 #### CFS (`SCHED_OTHER`, `SCHED_BATCH`, `SCHED_IDLE`)
 
-For threads on the CFS, `priority` is the nice value, ranging from `-20` (highest priority) to `19`
-(lowest priority):
+For threads on the CFS, specify the nice value under the `nice` key, ranging from `-20` (highest
+priority) to `19` (lowest priority). Values outside this range are rejected at startup:
 
 ```yaml
   - id: xxxxx
@@ -72,17 +79,17 @@ For threads on the CFS, `priority` is the nice value, ranging from `-20` (highes
       - 0
       - 1
     policy: SCHED_OTHER
-    priority: -10
+    nice: -10
 ```
 
 `SCHED_IDLE` is the lowest-priority background class — its threads run only when no other thread on the
-CPU is runnable. A `priority` (nice) value is still required, but it has little practical effect.
+CPU is runnable. A `nice` value is still required, but it has little practical effect.
 
 #### FIFO scheduler (`SCHED_FIFO`, `SCHED_RR`)
 
 For threads on the FIFO scheduler, `priority` ranges from `99` (highest) to `1` (lowest). This range
 corresponds to the return values of `sched_get_priority_max(2)` and `sched_get_priority_min(2)`, which
-on Linux are `99` and `1`:
+on Linux are `99` and `1`. Values outside this range are rejected at startup:
 
 ```yaml
   - id: xxxxx
@@ -138,12 +145,12 @@ callback_groups:
   - id: /sample_node@Subscription(/topic_in)
     affinity: ~
     policy: SCHED_OTHER
-    priority: 0
+    nice: 0
 
   - id: /sample_node@Timer(1333000000)
     affinity: ~
     policy: SCHED_OTHER
-    priority: 0
+    nice: 0
 ```
 
 !!! warning
@@ -164,7 +171,8 @@ how to create such threads):
 |-------|----------|-------------|
 | `id` | Yes | Thread name (must match the name passed to `spawn_non_ros2_thread`) |
 | `policy` | Yes | Scheduling policy (same options as `callback_groups`) |
-| `priority` | Yes (except `SCHED_DEADLINE`) | Real-time priority or nice value |
+| `nice` | CFS policies only | Nice value, `-20` … `19` |
+| `priority` | `SCHED_FIFO` / `SCHED_RR` only | Real-time priority, `1` … `99` |
 | `affinity` | No | List of CPU cores |
 
 ```yaml
@@ -173,7 +181,7 @@ non_ros_threads:
     affinity:
       - 4
     policy: SCHED_OTHER
-    priority: 0
+    nice: 0
 ```
 
 ## hardware_info
@@ -222,7 +230,7 @@ callback_groups:
 
   - id: /logging_node@Subscription(/rosout)
     policy: SCHED_OTHER
-    priority: 10
+    nice: 10
 
 non_ros_threads:
   - id: sensor_driver

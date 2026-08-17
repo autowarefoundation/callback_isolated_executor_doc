@@ -62,28 +62,28 @@ callback_groups:
   - id: /sample_space/sample_subspace/sample_node@Subscription(/parameter_events)@Service(...)
     affinity: ~
     policy: SCHED_OTHER
-    priority: 0
+    nice: 0
 
   - id: /sample_space/sample_subspace/sample_node@Timer(3000000000)
     affinity: ~
     policy: SCHED_OTHER
-    priority: 0
+    nice: 0
 
   - id: /sample_space/sample_subspace/sample_node@Timer(1333000000)
     affinity: ~
     policy: SCHED_OTHER
-    priority: 0
+    nice: 0
 
   - id: /sample_space/sample_subspace/sample_node@Subscription(/sample_space/sample_subspace/topic_in)
     affinity: ~
     policy: SCHED_OTHER
-    priority: 0
+    nice: 0
 
 non_ros_threads:
   - id: sample_non_ros_thread
     affinity: ~
     policy: SCHED_OTHER
-    priority: 0
+    nice: 0
 ```
 
 Then stop the sample application (`Ctrl+C`).
@@ -119,7 +119,7 @@ callback_groups:
 non_ros_threads:
   - id: sample_non_ros_thread
     policy: SCHED_OTHER
-    priority: 0
+    nice: 0
 ```
 
 CallbackGroups you do not list keep the default CFS scheduling.
