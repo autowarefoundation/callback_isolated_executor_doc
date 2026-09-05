@@ -57,16 +57,6 @@ See the [Integration Guide](integration-guide.md) for building from source and f
 - [Tutorial](tutorial.md) — End-to-end walkthrough with the sample application
 - [Comparison with Other Executors](comparison-with-other-executors.md) — Real-time properties versus other ROS 2 executors
 
-## Adoption in Autoware
-
-Most of Autoware's major nodes already run on `CallbackIsolatedExecutor`, and the remaining nodes are
-scheduled to follow (see the
-[Autoware discussion](https://github.com/orgs/autowarefoundation/discussions/6813) and the
-[migration issue](https://github.com/autowarefoundation/autoware_core/issues/968)). In TIER IV's
-robotaxi, applying `CallbackIsolatedExecutor` with tuned scheduling attributes to the five bottleneck
-DAGs (top LiDAR, localization, perception, planning, and control) improved the measured worst-case
-response time by roughly 5x compared with default CFS scheduling.
-
 ## Relation to Agnocast
 
 [Agnocast](https://github.com/autowarefoundation/agnocast) provides an Agnocast-compatible port of this
