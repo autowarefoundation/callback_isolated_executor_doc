@@ -36,10 +36,18 @@ This package continues the development of [`sykwer/callback_isolated_executor`](
 
 | Category | Supported Versions / Notes |
 |----------|----------------------------|
-| ROS 2 | Humble (only with the `rclcpp` client library) |
-| Linux Distribution | Ubuntu 22.04 (Jammy Jellyfish) |
+| ROS 2 | Humble, Jazzy (only with the `rclcpp` client library) |
+| Linux Distribution | Ubuntu 22.04 (Jammy Jellyfish), Ubuntu 24.04 (Noble Numbat) |
 
-This reflects the current status; support is expected to expand in the future.
+## Install
+
+The packages are released on the ROS 2 build farm:
+
+```bash
+sudo apt install ros-$ROS_DISTRO-callback-isolated-executor
+```
+
+See the [Integration Guide](integration-guide.md) for building from source and for the remaining steps.
 
 ## Pages
 
@@ -48,6 +56,16 @@ This reflects the current status; support is expected to expand in the future.
 - [Non-ROS Threads](non-ros-threads.md) — Managing scheduling for threads outside the ROS 2 executor
 - [Tutorial](tutorial.md) — End-to-end walkthrough with the sample application
 - [Comparison with Other Executors](comparison-with-other-executors.md) — Real-time properties versus other ROS 2 executors
+
+## Adoption in Autoware
+
+Most of Autoware's major nodes already run on `CallbackIsolatedExecutor`, and the remaining nodes are
+scheduled to follow (see the
+[Autoware discussion](https://github.com/orgs/autowarefoundation/discussions/6813) and the
+[migration issue](https://github.com/autowarefoundation/autoware_core/issues/968)). In TIER IV's
+robotaxi, applying `CallbackIsolatedExecutor` with tuned scheduling attributes to the five bottleneck
+DAGs (top LiDAR, localization, perception, planning, and control) improved the measured worst-case
+response time by roughly 5x compared with default CFS scheduling.
 
 ## Relation to Agnocast
 

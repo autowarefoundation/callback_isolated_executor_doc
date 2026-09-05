@@ -44,6 +44,10 @@ Which scheduling-parameter key is required depends on the policy: CFS policies (
 rejected at startup with an error naming the key; a stray key of another policy class is ignored like
 any other unknown key.
 
+A `Reentrant` CallbackGroup is served by several threads (see
+[Reentrant CallbackGroups](integration-guide.md#reentrant-callbackgroups)). They all report the same
+ID, so one entry configures every thread of the group.
+
 ### affinity
 
 `affinity` is an array of core numbers allowed to run the thread, corresponding to the CPU set used
@@ -138,10 +142,17 @@ callback contained in the CallbackGroup. There are four callback types:
 - `Client(<service name>)`
 - `Timer(<period in nanoseconds>)`
 
-For example:
+Entries are sorted alphabetically, so an ID does not depend on the order in which the callbacks were
+created. For example, the default CallbackGroup of `/sample_node` (parameter services plus the
+`/parameter_events` subscription) and two user-defined groups look like this:
 
 ```yaml
 callback_groups:
+  - id: /sample_node@Service(/sample_node/describe_parameters)@Service(/sample_node/get_parameter_types)@Service(/sample_node/get_parameters)@Service(/sample_node/list_parameters)@Service(/sample_node/set_parameters)@Service(/sample_node/set_parameters_atomically)@Subscription(/parameter_events)
+    affinity: ~
+    policy: SCHED_OTHER
+    nice: 0
+
   - id: /sample_node@Subscription(/topic_in)
     affinity: ~
     policy: SCHED_OTHER
@@ -163,17 +174,10 @@ callback_groups:
 
 ## non_ros_threads
 
-Threads that are not part of any ROS 2 executor can also be configured. The fields match
-`callback_groups` except that `id` is the thread name (see [Non-ROS Threads](non-ros-threads.md) for
-how to create such threads):
-
-| Field | Required | Description |
-|-------|----------|-------------|
-| `id` | Yes | Thread name (must match the name passed to `spawn_non_ros2_thread`) |
-| `policy` | Yes | Scheduling policy (same options as `callback_groups`) |
-| `nice` | CFS policies only | Nice value, `-20` … `19` |
-| `priority` | `SCHED_FIFO` / `SCHED_RR` only | Real-time priority, `1` … `99` |
-| `affinity` | No | List of CPU cores |
+Threads that are not part of any ROS 2 executor can also be configured. The fields are identical to
+[`callback_groups`](#callback_groups), including the `SCHED_DEADLINE` parameters, except that `id` is
+the thread name passed to `spawn_non_ros2_thread` (see [Non-ROS Threads](non-ros-threads.md) for how
+to create such threads):
 
 ```yaml
 non_ros_threads:
