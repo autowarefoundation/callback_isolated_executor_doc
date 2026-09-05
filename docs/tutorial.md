@@ -28,12 +28,6 @@ Step 4.
 It also spawns a non-ROS worker thread named `sample_non_ros_thread` via
 `spawn_non_ros2_thread` (see [Non-ROS Threads](non-ros-threads.md)).
 
-!!! tip "Reentrant CallbackGroups"
-    `ros2 run cie_sample_application reentrant_node_main` runs `ReentrantNode`, whose single
-    `Reentrant` CallbackGroup (two timers, 100 ms and 1000 ms) is served by four threads. All four report
-    the same CallbackGroup ID, so one `callback_groups` entry configures them all (see
-    [Reentrant CallbackGroups](integration-guide.md#reentrant-callbackgroups)).
-
 ## Step 1: Launch the Application
 
 ```bash

@@ -32,19 +32,6 @@ If callbacks were placed in one `MutuallyExclusive` group only to serialize acce
 move them into separate groups and protect the shared state with a mutex instead (see
 [Concurrency](#notes-on-adoption)).
 
-### Reentrant CallbackGroups
-
-A `Reentrant` CallbackGroup is served by `reentrant_parallelism` threads (default `4`) instead of one.
-All of them report the same CallbackGroup ID, so a single `callback_groups` entry configures every
-thread of the group. `reentrant_parallelism` is a constructor argument of `CallbackIsolatedExecutor`
-and a node parameter of the component container (see Step 2); a value below `2` gives the group a
-single thread, like a `MutuallyExclusive` group.
-
-!!! note
-    In prerun mode, the extra threads of a `Reentrant` group are reported as
-    `Duplicate callback_group_id received`. This is harmless: the template still contains exactly one
-    entry for the group.
-
 ## Step 1: Install
 
 ### Option A: apt
@@ -117,10 +104,6 @@ int main(int argc, char * argv[]) {
 }
 ```
 
-The constructor takes optional arguments `(rclcpp::ExecutorOptions, size_t reentrant_parallelism,
-bool yield_before_execute, std::chrono::nanoseconds next_exec_timeout)`; they only affect
-`Reentrant` CallbackGroups (see [Step 0](#reentrant-callbackgroups)).
-
 ### Option 2: Launch with a ComponentContainer
 
 Use `component_container_callback_isolated` from the `callback_isolated_executor` package as the
@@ -147,10 +130,6 @@ Alternatively, load a node into an existing container:
   </load_composable_node>
 </launch>
 ```
-
-The container accepts the node parameters `reentrant_parallelism` (default `4`), `yield_before_execute`
-(default `false`), and `next_exec_timeout_ns` (default `-1`), which apply to the threads serving
-`Reentrant` CallbackGroups.
 
 If you modify application source code (Option 1), rebuild before continuing.
 

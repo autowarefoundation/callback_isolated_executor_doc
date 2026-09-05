@@ -44,10 +44,6 @@ Which scheduling-parameter key is required depends on the policy: CFS policies (
 rejected at startup with an error naming the key; a stray key of another policy class is ignored like
 any other unknown key.
 
-A `Reentrant` CallbackGroup is served by several threads (see
-[Reentrant CallbackGroups](integration-guide.md#reentrant-callbackgroups)). They all report the same
-ID, so one entry configures every thread of the group.
-
 ### affinity
 
 `affinity` is an array of core numbers allowed to run the thread, corresponding to the CPU set used
