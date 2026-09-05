@@ -36,10 +36,19 @@ This package continues the development of [`sykwer/callback_isolated_executor`](
 
 | Category | Supported Versions / Notes |
 |----------|----------------------------|
-| ROS 2 | Humble (only with the `rclcpp` client library) |
-| Linux Distribution | Ubuntu 22.04 (Jammy Jellyfish) |
+| ROS 2 | Humble, Jazzy (only with the `rclcpp` client library) |
+| Linux Distribution | Ubuntu 22.04 (Jammy Jellyfish), Ubuntu 24.04 (Noble Numbat) |
 
-This reflects the current status; support is expected to expand in the future.
+## Install
+
+The packages are released on the ROS 2 build farm (Humble binaries are available; for Jazzy, build from
+source until the binaries are published):
+
+```bash
+sudo apt install ros-$ROS_DISTRO-callback-isolated-executor
+```
+
+See the [Integration Guide](integration-guide.md) for building from source and for the remaining steps.
 
 ## Pages
 
