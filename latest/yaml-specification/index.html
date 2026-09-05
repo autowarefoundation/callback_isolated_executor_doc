@@ -959,17 +959,25 @@ callback contained in the CallbackGroup. There are four callback types:</p>
 <li><code>Client(&lt;service name&gt;)</code></li>
 <li><code>Timer(&lt;period in nanoseconds&gt;)</code></li>
 </ul>
-<p>For example:</p>
+<p>The callback entries within an ID are sorted alphabetically, so an ID does not depend on the order in
+which the callbacks were created; prerun also writes the <code>callback_groups</code> list sorted by ID. For
+example, the default CallbackGroup of <code>/sample_node</code> (parameter services plus the
+<code>/parameter_events</code> subscription) and two user-defined groups look like this:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">callback_groups</span><span class="p">:</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/sample_node@Subscription(/topic_in)</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/sample_node@Service(/sample_node/describe_parameters)@Service(/sample_node/get_parameter_types)@Service(/sample_node/get_parameters)@Service(/sample_node/list_parameters)@Service(/sample_node/set_parameters)@Service(/sample_node/set_parameters_atomically)@Subscription(/parameter_events)</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nt">affinity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">~</span>
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="nt">policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SCHED_OTHER</span>
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="nt">nice</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
 <a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/sample_node@Timer(1333000000)</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/sample_node@Subscription(/topic_in)</span>
 <a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="nt">affinity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">~</span>
 <a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="nt">policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SCHED_OTHER</span>
 <a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="nt">nice</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/sample_node@Timer(1333000000)</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">    </span><span class="nt">affinity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">~</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">    </span><span class="nt">policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SCHED_OTHER</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">    </span><span class="nt">nice</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
 </code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -982,45 +990,10 @@ slightly adjust one period (for example by <code>1ns</code>).</p>
 trailing <code>@Waitable</code> in an existing configuration is ignored when the file is loaded.</p>
 </div>
 <h2 id="non_ros_threads">non_ros_threads<a class="headerlink" href="#non_ros_threads" title="Permanent link">#</a></h2>
-<p>Threads that are not part of any ROS 2 executor can also be configured. The fields match
-<code>callback_groups</code> except that <code>id</code> is the thread name (see <a href="../non-ros-threads/">Non-ROS Threads</a> for
-how to create such threads):</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>id</code></td>
-<td>Yes</td>
-<td>Thread name (must match the name passed to <code>spawn_non_ros2_thread</code>)</td>
-</tr>
-<tr>
-<td><code>policy</code></td>
-<td>Yes</td>
-<td>Scheduling policy (same options as <code>callback_groups</code>)</td>
-</tr>
-<tr>
-<td><code>nice</code></td>
-<td>CFS policies only</td>
-<td>Nice value, <code>-20</code> … <code>19</code></td>
-</tr>
-<tr>
-<td><code>priority</code></td>
-<td><code>SCHED_FIFO</code> / <code>SCHED_RR</code> only</td>
-<td>Real-time priority, <code>1</code> … <code>99</code></td>
-</tr>
-<tr>
-<td><code>affinity</code></td>
-<td>No</td>
-<td>List of CPU cores</td>
-</tr>
-</tbody>
-</table>
+<p>Threads that are not part of any ROS 2 executor can also be configured. The fields are identical to
+<a href="#callback_groups"><code>callback_groups</code></a>, including the <code>SCHED_DEADLINE</code> parameters, except that <code>id</code> is
+the thread name passed to <code>spawn_non_ros2_thread</code> (see <a href="../non-ros-threads/">Non-ROS Threads</a> for how
+to create such threads):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">non_ros_threads</span><span class="p">:</span>
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">worker_thread_name</span>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nt">affinity</span><span class="p">:</span>
@@ -1080,13 +1053,13 @@ section automatically.</p>
 </table>
 <h2 id="full-example">Full Example<a class="headerlink" href="#full-example" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">hardware_info</span><span class="p">:</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">model_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Intel(R) Xeon(R) Silver 4216 CPU @ 2.10GHz</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nt">cpu_family</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">85</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="nt">threads_per_core</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="nt">frequency_boost</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enabled</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="nt">cpu_max_mhz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2101.0000</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">  </span><span class="nt">cpu_min_mhz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">800.0000</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">cpu_family</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nt">cpu_max_mhz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2101.0000</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="nt">cpu_min_mhz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">800.0000</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="nt">frequency_boost</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enabled</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">85</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="nt">model_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Intel(R) Xeon(R) Silver 4216 CPU @ 2.10GHz</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">  </span><span class="nt">threads_per_core</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
 <a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="nt">callback_groups</span><span class="p">:</span>
 <a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/camera_node@Subscription(/camera/image)</span>
