@@ -138,8 +138,9 @@ callback contained in the CallbackGroup. There are four callback types:
 - `Client(<service name>)`
 - `Timer(<period in nanoseconds>)`
 
-Entries are sorted alphabetically, so an ID does not depend on the order in which the callbacks were
-created. For example, the default CallbackGroup of `/sample_node` (parameter services plus the
+The callback entries within an ID are sorted alphabetically, so an ID does not depend on the order in
+which the callbacks were created; prerun also writes the `callback_groups` list sorted by ID. For
+example, the default CallbackGroup of `/sample_node` (parameter services plus the
 `/parameter_events` subscription) and two user-defined groups look like this:
 
 ```yaml
@@ -204,13 +205,13 @@ section automatically.
 
 ```yaml
 hardware_info:
-  model_name: Intel(R) Xeon(R) Silver 4216 CPU @ 2.10GHz
   cpu_family: 6
-  model: 85
-  threads_per_core: 1
-  frequency_boost: enabled
   cpu_max_mhz: 2101.0000
   cpu_min_mhz: 800.0000
+  frequency_boost: enabled
+  model: 85
+  model_name: Intel(R) Xeon(R) Silver 4216 CPU @ 2.10GHz
+  threads_per_core: 1
 
 callback_groups:
   - id: /camera_node@Subscription(/camera/image)

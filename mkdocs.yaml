@@ -7,6 +7,8 @@ site_url: https://autowarefoundation.github.io/callback_isolated_executor_doc
 repo_url: https://github.com/autowarefoundation/callback_isolated_executor
 repo_name: autowarefoundation/callback_isolated_executor
 docs_dir: docs
+validation:
+  anchors: warn
 copyright: Copyright &copy; 2026 The Autoware Foundation
 
 theme:

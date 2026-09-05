@@ -72,7 +72,7 @@ callback_groups:
     policy: SCHED_OTHER
     nice: 0
 
-  - id: /sample_space/sample_subspace/sample_node@Timer(3000000000)
+  - id: /sample_space/sample_subspace/sample_node@Subscription(/sample_space/sample_subspace/topic_in)
     affinity: ~
     policy: SCHED_OTHER
     nice: 0
@@ -82,7 +82,7 @@ callback_groups:
     policy: SCHED_OTHER
     nice: 0
 
-  - id: /sample_space/sample_subspace/sample_node@Subscription(/sample_space/sample_subspace/topic_in)
+  - id: /sample_space/sample_subspace/sample_node@Timer(3000000000)
     affinity: ~
     policy: SCHED_OTHER
     nice: 0

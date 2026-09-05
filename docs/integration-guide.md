@@ -2,13 +2,13 @@
 
 ## Overview
 
-0. **(Optional) Separate CallbackGroups** so that every callback you want to schedule strictly gets its own thread
-1. **Install** the `callback_isolated_executor` packages
-2. **Switch the executor** in your application code or launch file
-3. **Generate a YAML template** by running the configurator in prerun mode
-4. **Edit the YAML** to assign scheduling policies, priorities, and CPU affinities
-5. **Grant `CAP_SYS_NICE`** to the thread configurator (one-time system configuration)
-6. **Launch the configurator** with your config file, then start your application
+- **Step 0 (Optional): Separate CallbackGroups** so that every callback whose scheduling you want to control gets its own thread
+- **Step 1: Install** the `callback_isolated_executor` packages
+- **Step 2: Switch the executor** in your application code or launch file
+- **Step 3: Generate a YAML template** by running the configurator in prerun mode
+- **Step 4: Edit the YAML** to assign scheduling policies, priorities, and CPU affinities
+- **Step 5: Grant `CAP_SYS_NICE`** to the thread configurator (one-time system configuration)
+- **Step 6: Launch the configurator** with your config file, then start your application
 
 See the [Tutorial](tutorial.md) for a concrete walkthrough with the sample application.
 
@@ -16,7 +16,7 @@ See the [Tutorial](tutorial.md) for a concrete walkthrough with the sample appli
 
 `CallbackIsolatedExecutor` assigns one OS thread per CallbackGroup, so the CallbackGroup is the unit of
 scheduling: callbacks in the same group share a thread and therefore share scheduling parameters. Give
-every callback whose scheduling you want to control strictly its own CallbackGroup:
+every callback whose scheduling you want to control its own dedicated CallbackGroup:
 
 ```cpp
 timer_group_ = create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
@@ -36,7 +36,8 @@ move them into separate groups and protect the shared state with a mutex instead
 
 ### Option A: apt
 
-`callback_isolated_executor` is released on the ROS 2 build farm for Humble and Jazzy:
+`callback_isolated_executor` is released on the ROS 2 build farm. Binaries are available for Humble;
+Jazzy is registered but its binaries may not be on `packages.ros.org` yet:
 
 ```bash
 sudo apt install ros-$ROS_DISTRO-callback-isolated-executor
@@ -44,7 +45,7 @@ sudo apt install ros-$ROS_DISTRO-callback-isolated-executor
 sudo apt install ros-$ROS_DISTRO-cie-sample-application
 ```
 
-If `apt` cannot find the package for your distribution yet, build from source.
+If `apt` cannot find the package for your distribution, build from source (Option B).
 
 ### Option B: Build from source
 
@@ -149,7 +150,7 @@ ros2 launch your_package your_launch.xml
 
 As the application starts, the prerun node logs one entry per CallbackGroup, each showing the
 CallbackGroup ID and its OS thread ID. Once all nodes are up and the log output settles, press
-`Ctrl+C` in the prerun terminal. A `template.yaml` is created in the current directory, then stop the
+`Ctrl+C` in the prerun terminal. A `template.yaml` is created in the current directory. Then stop the
 target application.
 
 The template captures hardware information from the system (CPU details via `lscpu`) under
@@ -190,16 +191,20 @@ Description=CIE thread configurator
 [Service]
 User=<your-user>
 AmbientCapabilities=CAP_SYS_NICE
-# Match the target application's environment, e.g.:
+# Match the target application's ROS environment. If these differ, discovery fails silently and the
+# configurator never receives any CallbackGroup.
 # Environment=ROS_DOMAIN_ID=0
-ExecStart=/bin/bash -c 'source /opt/ros/humble/setup.bash && exec ros2 run cie_thread_configurator thread_configurator_node --ros-args -p config_file:=/absolute/path/to/your_config.yaml'
+# Environment=RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+# Environment=ROS_LOCALHOST_ONLY=1   # Humble; ROS_AUTOMATIC_DISCOVERY_RANGE on Jazzy
+ExecStart=/bin/bash -c 'source /opt/ros/<distro>/setup.bash && exec ros2 run cie_thread_configurator thread_configurator_node --ros-args -p config_file:=/absolute/path/to/your_config.yaml'
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-For a source build, source your workspace's `install/setup.bash` instead of `/opt/ros/humble/setup.bash`.
-Then load and start the service:
+Replace `<distro>` with your ROS 2 distribution (`humble` or `jazzy`); a unit file cannot expand
+`$ROS_DISTRO`. For a source build, source your workspace's `install/setup.bash` instead. Then load and
+start the service:
 
 ```bash
 sudo systemctl daemon-reload
@@ -224,11 +229,13 @@ Register the required library directories explicitly by creating a file under `/
 name ends in `.conf` — for example `/etc/ld.so.conf.d/callback-isolated-executor.conf`:
 
 ```text
-/opt/ros/humble/lib
-/opt/ros/humble/lib/x86_64-linux-gnu
+/opt/ros/<distro>/lib
+/opt/ros/<distro>/lib/<arch>-linux-gnu
 ```
 
-For a source build, also add the `lib` directory of `cie_config_msgs` in your install space, for example
+Replace `<distro>` with your ROS 2 distribution and `<arch>` with your architecture (`x86_64` or
+`aarch64`; check with `ls /opt/ros/$ROS_DISTRO/lib | grep linux-gnu`). For a source build, also add the
+`lib` directory of `cie_config_msgs` in your install space, for example
 `/path/to/callback_isolated_executor/install/cie_config_msgs/lib`.
 
 Apply the change:

@@ -41,7 +41,8 @@ This package continues the development of [`sykwer/callback_isolated_executor`](
 
 ## Install
 
-The packages are released on the ROS 2 build farm:
+The packages are released on the ROS 2 build farm (Humble binaries are available; for Jazzy, build from
+source until the binaries are published):
 
 ```bash
 sudo apt install ros-$ROS_DISTRO-callback-isolated-executor
